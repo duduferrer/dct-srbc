@@ -1,6 +1,9 @@
 import pandas as pd
 import csv
 from database import query
+from utils import coordIsValid
+
+
 def get_fix_from_table():
     try:
         import tkinter as tk
@@ -25,6 +28,12 @@ def insert_fix_into_db(df):
     numero_fixo = int(get_last_fix_number())
     df = df.where(pd.notnull(df), "")
     df["NUMERO"] = df["NUMERO"]+numero_fixo
+    for row in df.itertuples():
+        campo_a = row.CAMPOA
+        campo_b = row.CAMPOB
+        if not coordIsValid(campo_a) & coordIsValid(campo_b):
+            return False
+
     queries_list = []
     fixos = df.to_dict(orient="records")
     # print(fixos)
