@@ -1,0 +1,8 @@
+# DATABASE
+HOST = ''
+USER = ''
+PASSWORD = ''
+DATABASE = ''
+PORT = ''
+#AREA DE EXERCICIO
+AREA = ''

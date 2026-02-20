@@ -1,7 +1,9 @@
+from time import sleep
 import pandas as pd
-import csv
-from database import query
-from utils import coordIsValid
+import questionary
+import config
+from database import query, execute
+from utils import coordIsValid, clear_screen, validate_size
 
 
 def get_fix_from_table():
@@ -46,8 +48,33 @@ def insert_fix_into_db(df):
         values = (fixo.get("AREA"), fixo.get("NUMERO"), fixo.get("INDICATIVO"), fixo.get("NOME"), fixo.get("TIPO"), fixo.get("FREQUENCIA"),
                   fixo.get("TIPOCOORD"), fixo.get("CAMPOA"), fixo.get("CAMPOB"))
         queries_list.append((sql, values))
-    query(queries_list)
+    execute(queries_list)
 
 def get_last_fix_number():
     res = query("SELECT * FROM a_fixos ORDER BY numero DESC LIMIT 1;")
     return res[0][1]
+def get_areas():
+    res = query("SELECT * FROM a_area;")
+    return res
+def create_area():
+    clear_screen()
+    print("-------- CRIAÇÃO DE AREA --------")
+    area = questionary.text("Área: ", validate=validate_size(4)).ask()
+    decl_mag = questionary.text("Declinação Magnética: ", validate=validate_size(2)).ask()
+    hems = questionary.text("Hemisfério(W ou E): ", validate=validate_size(1)).ask()
+    obs = questionary.text("Observação: ", validate=validate_size(50)).ask()
+    res = query("SELECT * FROM a_area WHERE AREA = %s;", (area,))
+    if len(res) != 0:
+        from menus import area_selection
+        print("Área já existe.")
+        sleep(2)
+        area_selection()
+    else:
+        sql = """
+                INSERT INTO a_area
+                (AREA, DECLMAG, HEMISFERIO, OBSERVACOE)
+                VALUES (%s, %s, %s, %s)
+              """
+        values = (area.upper(), decl_mag, hems.upper(), obs.upper())
+        execute([(sql, values)])
+        config.AREA = area.upper()
