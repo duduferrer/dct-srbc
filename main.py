@@ -1,7 +1,6 @@
 import sys
 
 from menus import initial_setup
-from srbc import get_fix_from_table, insert_fix_into_db
 from dotenv import load_dotenv
 
 
@@ -9,8 +8,6 @@ def main():
     try:
         load_dotenv()
         initial_setup()
-        df = get_fix_from_table()
-        insert_fix_into_db(df)
     except KeyboardInterrupt:
         print("Encerrando...")
         sys.exit(0)

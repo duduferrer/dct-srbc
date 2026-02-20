@@ -2,6 +2,7 @@ from time import sleep
 import pandas as pd
 import questionary
 import config
+from config import AREA
 from database import query, execute
 from utils import coordIsValid, clear_screen, validate_size
 
@@ -34,6 +35,8 @@ def insert_fix_into_db(df):
         campo_a = row.CAMPOA
         campo_b = row.CAMPOB
         if not coordIsValid(campo_a) & coordIsValid(campo_b):
+            print(f"Erro no formato da coordenada de: {row.NOME}\n")
+            input("Pressione enter para continuar...")
             return False
 
     queries_list = []
@@ -51,7 +54,7 @@ def insert_fix_into_db(df):
     execute(queries_list)
 
 def get_last_fix_number():
-    res = query("SELECT * FROM a_fixos ORDER BY numero DESC LIMIT 1;")
+    res = query("SELECT * FROM a_fixos WHERE area=%s ORDER BY CAST(numero AS UNSIGNED) DESC LIMIT 1;",(AREA,))
     return res[0][1]
 def get_areas():
     res = query("SELECT * FROM a_area;")
