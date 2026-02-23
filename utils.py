@@ -5,12 +5,6 @@ from mysql.connector.constants import flag_is_set
 
 import config
 
-'''
-VERIFICAR SE:
-    AREA EXISTE
-    FIXO É UNICO NA AREA
-'''
-
 def coordIsValid(coord)->bool:
     pattern = ""
     campo = coord[-1]
@@ -60,3 +54,8 @@ def validate_size(size):
             return f"Campo nao pode ser maior que {size}"
         return True
     return validator
+def unavailable():
+    print("Ainda indisponivel.")
+    input("Pressione ENTER para continuar...")
+    from menus import selection_menu
+    selection_menu()

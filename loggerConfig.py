@@ -15,7 +15,7 @@ def setup_logger():
 
 
     logger = logging.getLogger("DCT_SRBC")
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
 
     if not logger.handlers:
         logger.addHandler(file_handler)

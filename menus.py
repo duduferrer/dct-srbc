@@ -6,7 +6,7 @@ import config
 from about import about
 from database import conn_test
 from srbc import get_areas, create_area
-from utils import load_db_credentials, clear_screen
+from utils import load_db_credentials, clear_screen, unavailable
 
 
 def initial_setup():
@@ -64,11 +64,11 @@ def selection_menu():
             insert_fix_into_db(df)
             selection_menu()
         case "trj":
-            pass
+            unavailable()
         case "ex":
-            pass
+            unavailable()
         case "acft":
-            pass
+            unavailable()
         case "about":
             about()
         case "exit":
