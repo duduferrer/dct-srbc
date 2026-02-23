@@ -55,7 +55,7 @@ def selection_menu():
                     questionary.Choice("Adicionar Aeronaves de Exercicios", "acft"),
                     questionary.Choice("Sobre", "about"),
                     questionary.Choice("Sair", "exit")]
-    option_selected = questionary.select("Escolha a área que será editada: ", choices=choices_list).ask()
+    option_selected = questionary.select("Escolha uma opção: ", choices=choices_list).ask()
     match option_selected:
         case "fix":
             df = get_fix_from_table()
