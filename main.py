@@ -1,5 +1,6 @@
 import sys
 
+from loggerConfig import log
 from menus import initial_setup
 from dotenv import load_dotenv
 
