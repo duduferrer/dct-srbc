@@ -37,6 +37,7 @@ def area_selection():
         title = area + " - " + obs
         choice = questionary.Choice(title, value=area)
         choice_list.append(choice)
+    choice_list.append(questionary.Separator())
     choice_list.append(questionary.Choice("CRIAR ÁREA NOVA", value="New Area"))
     area = questionary.select("Escolha a área que será editada: ", choices=choice_list).ask()
     if area == "New Area":
@@ -54,6 +55,7 @@ def selection_menu():
                     questionary.Choice("Adicionar Exercicios", "ex"),
                     questionary.Choice("Adicionar Aeronaves de Exercicios", "acft"),
                     questionary.Choice("Sobre", "about"),
+                    questionary.Separator(),
                     questionary.Choice("Sair", "exit")]
     option_selected = questionary.select("Escolha uma opção: ", choices=choices_list).ask()
     match option_selected:

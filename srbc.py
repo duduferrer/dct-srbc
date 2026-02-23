@@ -1,36 +1,40 @@
+from pathlib import Path
 from time import sleep
 import pandas as pd
 import questionary
 import config
-from config import AREA
 from database import query, execute
 from utils import coordIsValid, clear_screen, validate_size
 
 
 def get_fix_from_table():
+    clear_screen()
+    current_dir = Path.cwd()
+    csv_files = [f.name for f in current_dir.glob("*.csv")]
+    if not csv_files:
+        print(f"Nenhum arquivo CSV encontrado em: {current_dir}")
+        input("Pressione enter para continuar...")
+        return None
+    choices = csv_files + [questionary.Separator(), "Cancelar"]
+    selected_file = questionary.select("Selecione o arquivo para importar: ", choices=choices).ask()
+    if selected_file is None or selected_file == "Cancelar":
+        print("Nenhum arquivo selecionado.")
+        sleep(2)
+        return None
     try:
-        import tkinter as tk
-        from tkinter import filedialog
-    except ImportError:
-        print("Tkinter não está instalado. Instale-o no sistema.")
-        exit(1)
-    root = tk.Tk()
-    root.withdraw()
-    csv_path = filedialog.askopenfilename(
-        title="Selecione o arquivo CSV",
-        filetypes=[("Arquivos CSV", "*.csv")],
-    )
-    filename = csv_path
-    if not csv_path:
-        print("Nenhum arquivo selecionado. Encerrando.")
-        exit()
-    df = pd.read_csv(filename, header=0, sep=",")
-    return df
+        csv_path = current_dir / selected_file
+        df = pd.read_csv(csv_path, header=0, sep=",")
+        return df
+    except:
+        print(f"Erro ao ler arquivo.")
+        input("Pressione enter para continuar...")
+        return None
 
 def insert_fix_into_db(df):
     numero_fixo = int(get_last_fix_number())
     df = df.where(pd.notnull(df), "")
-    df["NUMERO"] = df["NUMERO"]+numero_fixo
+    df["NUMERO"] = (df["NUMERO"]+numero_fixo).astype(str).str.zfill(4)
+    df["AREA"] = config.AREA
     for row in df.itertuples():
         campo_a = row.CAMPOA
         campo_b = row.CAMPOB
@@ -51,11 +55,25 @@ def insert_fix_into_db(df):
         values = (fixo.get("AREA"), fixo.get("NUMERO"), fixo.get("INDICATIVO"), fixo.get("NOME"), fixo.get("TIPO"), fixo.get("FREQUENCIA"),
                   fixo.get("TIPOCOORD"), fixo.get("CAMPOA"), fixo.get("CAMPOB"))
         queries_list.append((sql, values))
-    execute(queries_list)
+    count = execute(queries_list)
+    if count>0:
+        print("Arquivo inserido com sucesso!")
+        input("Pressione enter para continuar...")
+        return True
+    elif count<=0:
+        print("Nao houveram alterações no banco")
+        input("Pressione enter para continuar...")
+        return False
+    else:
+        return False
+
 
 def get_last_fix_number():
-    res = query("SELECT * FROM a_fixos WHERE area=%s ORDER BY CAST(numero AS UNSIGNED) DESC LIMIT 1;",(AREA,))
-    return res[0][1]
+    res = query("SELECT * FROM a_fixos WHERE area=%s ORDER BY CAST(numero AS UNSIGNED) DESC LIMIT 1;",(config.AREA,))
+    if len(res) == 1:
+        return res[0][1]
+    else:
+        return 0
 def get_areas():
     res = query("SELECT * FROM a_area;")
     return res
