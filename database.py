@@ -1,7 +1,9 @@
-import os
+from time import sleep
+
+from loggerConfig import log
 
 import mysql.connector
-
+import sys
 import config
 
 
@@ -30,8 +32,8 @@ def query(sql, params=None):
         return cursor.fetchall()
 
     except Exception as e:
-        print("Erro SELECT:", e)
-        return []
+        log.error(f"Erro SELECT: {e}")
+        raise
 
     finally:
         if cursor:
@@ -67,4 +69,11 @@ def execute(sql, params=None):
             conn.close()
 
 def conn_test():
-    query("SHOW tables")
+    try:
+        query("SHOW tables")
+    except Exception as e:
+        log.error(f"Erro ao conectar no banco de dados. Erro: {e}")
+        print("Cheque as credenciais de acesso ao banco de dados e se o Banco de dados está rodando.")
+        print("Encerrando...")
+        sleep(2)
+        sys.exit(-1)

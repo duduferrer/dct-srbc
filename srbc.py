@@ -117,13 +117,18 @@ def create_area():
         sleep(2)
         area_selection()
     else:
-        sql = """
+        sql_area = """
                 INSERT INTO a_area
                 (AREA, DECLMAG, HEMISFERIO, OBSERVACOE)
                 VALUES (%s, %s, %s, %s)
-              """
-        values = (area.upper(), decl_mag, hems.upper(), obs.upper())
-        execute([(sql, values)])
+                """
+        sql_usuario = """
+                    INSERT INTO a_usuari (USUARIO, SENHA, GRUPO, AREA)
+                    VALUES (%s, %s, %s, %s)
+                    """
+        values_area = (area.upper(), decl_mag, hems.upper(), obs.upper())
+        values_usuario = (area.upper(), area.upper(), '1', area.upper())
+        execute([(sql_area, values_area),(sql_usuario, values_usuario)])
         config.AREA = area.upper()
 
 def insert_trj():

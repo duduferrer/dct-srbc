@@ -7,11 +7,12 @@ from about import about
 from database import conn_test
 from srbc import get_areas, create_area
 from utils import load_db_credentials, clear_screen, unavailable
+from loggerConfig import log
 
 
 def initial_setup():
     clear_screen()
-    use_default = questionary.confirm("Você deseja utilizar as credenciais padrão?").ask()
+    use_default = questionary.confirm("Você deseja utilizar login e senha padrão, para acessar o banco?").ask()
     if use_default:
         load_db_credentials("", "", "", "", "")
     else:
@@ -22,11 +23,7 @@ def initial_setup():
         database = questionary.text("Informe o DB: ").ask()
         port = questionary.text("Informe o PORT: ").ask()
         load_db_credentials(host, user, password, database, port)
-    try:
-        conn_test()
-    except ConnectionError:
-        print("Erro ao conectar no banco de dados. Cheque credenciais.")
-
+    conn_test()
     area_selection()
 
 
