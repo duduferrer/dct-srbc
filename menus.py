@@ -1,7 +1,7 @@
 import sys
 
 import questionary
-from srbc import get_fix_from_table, insert_fix_into_db
+from srbc import get_data_from_table, insert_fix_into_db
 import config
 from about import about
 from database import conn_test
@@ -57,7 +57,7 @@ def selection_menu():
     option_selected = questionary.select("Escolha uma opção: ", choices=choices_list).ask()
     match option_selected:
         case "fix":
-            df = get_fix_from_table()
+            df = get_data_from_table("FIX")
             insert_fix_into_db(df)
             selection_menu()
         case "trj":

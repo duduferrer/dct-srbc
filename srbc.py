@@ -8,7 +8,7 @@ from loggerConfig import log
 from utils import coordIsValid, clear_screen, validate_size
 
 
-def get_fix_from_table():
+def get_data_from_table(data_type):
     clear_screen()
     current_dir = Path.cwd()
     xlsx_files = [f.name for f in current_dir.glob("*.xlsx")]
@@ -24,7 +24,7 @@ def get_fix_from_table():
         return None
     try:
         xlsx_path = current_dir / selected_file
-        df = pd.read_excel(xlsx_path, header=0, sheet_name="FIX")
+        df = pd.read_excel(xlsx_path, header=0, sheet_name=data_type)
         return df
     except Exception as e:
         log.error(f"Erro ao ler arquivo. {e}")
