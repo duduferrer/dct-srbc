@@ -30,13 +30,13 @@ jobs:
       - name: Instalar dependências Python
         run: |
           pip install nuitka pandas mysql-connector-python numpy
-          # pip install -r requirements.txt (se existir)
+          pip install -r requirements.txt
 
       - name: Compilar com Nuitka
         run: |
-          python -m nuitka --onefile --standalone --output-dir=dist seu_script.py
+          python -m nuitka --onefile --standalone --output-dir=dist main.py
           # Renomeia para algo mais limpo (opcional)
-          mv dist/seu_script.bin dist/dct-srbc-linux
+          mv dist/main.bin dist/dct-srbc-linux
 
       - name: Criar GitHub Release
         uses: softprops/action-gh-release@v2
