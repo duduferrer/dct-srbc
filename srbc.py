@@ -11,28 +11,29 @@ from utils import coordIsValid, clear_screen, validate_size
 def get_fix_from_table():
     clear_screen()
     current_dir = Path.cwd()
-    csv_files = [f.name for f in current_dir.glob("*.csv")]
-    if not csv_files:
-        print(f"Nenhum arquivo CSV encontrado em: {current_dir}")
+    xlsx_files = [f.name for f in current_dir.glob("*.xlsx")]
+    if not xlsx_files:
+        print(f"Nenhum arquivo XLSX encontrado em: {current_dir}")
         input("Pressione enter para continuar...")
         return None
-    choices = csv_files + [questionary.Separator(), "Cancelar"]
+    choices = xlsx_files + [questionary.Separator(), "Cancelar"]
     selected_file = questionary.select("Selecione o arquivo para importar: ", choices=choices).ask()
     if selected_file is None or selected_file == "Cancelar":
         print("Nenhum arquivo selecionado.")
         sleep(2)
         return None
     try:
-        csv_path = current_dir / selected_file
-        df = pd.read_csv(csv_path, header=0, sep=",")
+        xlsx_path = current_dir / selected_file
+        df = pd.read_excel(xlsx_path, header=0, sheet_name="FIX")
         return df
-    except:
-        print(f"Erro ao ler arquivo.")
+    except Exception as e:
+        log.error(f"Erro ao ler arquivo. {e}")
         input("Pressione enter para continuar...")
         return None
 
 def insert_fix_into_db(df):
     log.info("Iniciando inserção de fixos")
+    df=df.rename(columns={"LATITUDE(DMM)":"CAMPOA", "LONGITUDE(DMM)":"CAMPOB", "NUMERO DO FIXO":"NUMERO"})
     numero_fixo = int(get_last_fix_number())
     df = df.where(pd.notnull(df), "")
     df["NOME"] = df["NOME"].str.strip().str.upper()
@@ -70,8 +71,8 @@ def insert_fix_into_db(df):
             CAMPOB = VALUES(CAMPOB);
           """
     for fixo in fixos:
-        values = (fixo.get("AREA"), fixo.get("NUMERO"), fixo.get("INDICATIVO"), fixo.get("NOME"), fixo.get("TIPO"), fixo.get("FREQUENCIA"),
-                  fixo.get("TIPOCOORD"), fixo.get("CAMPOA"), fixo.get("CAMPOB"))
+        values = (fixo.get("AREA"), fixo.get("NUMERO"), "", fixo.get("NOME"), "", "",
+                  "G", fixo.get("CAMPOA"), fixo.get("CAMPOB"))
         queries_list.append((sql, values))
     count = execute(queries_list)
     if count>0:
