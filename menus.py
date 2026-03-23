@@ -1,7 +1,7 @@
 import sys
 
 import questionary
-from srbc import get_data_from_table, insert_fix_into_db
+from srbc import get_data_from_table, insert_fix_into_db, insert_trj
 import config
 from about import about
 from database import conn_test
@@ -61,7 +61,9 @@ def selection_menu():
             insert_fix_into_db(df)
             selection_menu()
         case "trj":
-            unavailable()
+            df = get_data_from_table("trj")
+            insert_trj(df)
+            selection_menu()
         case "ex":
             unavailable()
         case "acft":
