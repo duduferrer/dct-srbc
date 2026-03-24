@@ -1,48 +1,48 @@
-name: Build and Release Linux Binary
+name: Build and Release Linux Binary (Legacy Support)
 
 on:
   push:
     tags:
-      - 'v*' # Dispara quando você cria uma tag começando com 'v' (ex: v1.0)
-  workflow_dispatch: # Permite rodar manualmente se precisar
+      - 'v*'
+  workflow_dispatch: # Permite execução manual
 
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Necessário para criar a Release no GitHub
+      contents: write # Permissão para criar a Release
 
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
 
-      - name: Configurar Python 3.12
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          cache: 'pip'
-
-      - name: Instalar dependências do sistema
+      - name: Compilar no Container Manylinux (Compatibilidade Total)
+        #manylinux2014 para garantir suporte ao Ubuntu 14.04 (GLIBC antiga)
         run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential python3-dev
-
-      - name: Instalar dependências Python
-        run: |
-          pip install nuitka pandas mysql-connector-python numpy zstandard
-          pip install -r requirements.txt
-
-      - name: Compilar com Nuitka
-        run: |
-          python -m nuitka --onefile --standalone --output-dir=dist main.py
-          # Renomeia para algo mais limpo (opcional)
-          mv dist/main.bin dist/dct-srbc-linux
+          docker run --rm -v ${{ github.workspace }}:/io quay.io/pypa/manylinux2014_x86_64 /bin/bash -c "
+            /opt/python/cp312-cp312/bin/pip install nuitka pandas mysql-connector-python numpy zstandard
+            
+            if [ -f /io/requirements.txt ]; then /opt/python/cp312-cp312/bin/pip install -r /io/requirements.txt; fi
+            
+            /opt/python/cp312-cp312/bin/python -m nuitka \
+              --onefile \
+              --standalone \
+              --output-dir=/io/dist \
+              /io/main.py
+            
+            mv /io/dist/main.bin /io/dist/dct-srbc-linux
+            chown $(id -u):$(id -g) /io/dist/dct-srbc-linux
+          "
 
       - name: Criar GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: dist/dct-srbc-linux
-          body: "Compilação automática do script para Linux (BDSBH23/DCT-SRBC)."
+          body: |
+            ### Release DCT-SRBC
+            Compilação automática otimizada para kernels antigos (Ubuntu 14.04+).
+            - **Versão:** ${{ github.ref_name }}
+            - **Sistema Alvo:** Linux x86_64 (Legacy GLIBC)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
