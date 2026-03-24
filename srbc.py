@@ -57,7 +57,6 @@ def insert_fix_into_db(df):
     df = df.merge(old_fix_df[["NUMERO", "NOME"]], on="NOME", how="left", suffixes=("", "_OLD"))
     mask = df['NUMERO_OLD'].notnull()
     existing_fix = df.loc[mask, ['NOME', 'CAMPOA', 'CAMPOB']].values.tolist()
-    input()
     for fix in existing_fix:
         log.info(f"Fixo: {fix[0]} já existente. Atualizado com os valores: {fix[1]}, {fix[2]}")
     df.loc[mask, 'NUMERO'] = df['NUMERO_OLD']
@@ -186,7 +185,6 @@ def insert_trj(df: pd.DataFrame):
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     '''
     pts_queries_list = []
-    input()
     for pt in pts_trjs:
         values_pt = (config.AREA, pt["TRJ"], pt["Nro do Ponto"], pt["Tipo Coord(F/D)"], pt["FIXO"] ,pt["DIST(SE POLAR)"], pt["RADIAL/GRAUS(SE POLAR)"], pt["CAMPO D"], pt["ALTITUDE"], pt["VELOCIDADE(TAS)"], pt["PROCEDIMENTO QUE LIGA"])
         pts_queries_list.append((sql_pts_trj, values_pt))
@@ -200,6 +198,34 @@ def insert_trj(df: pd.DataFrame):
         return True
     elif count_pts <= 0:
         log.warn("Nao houveram alterações no banco. Cheque a tabela com os fixos das TRJ.")
+        input("Pressione enter para continuar...")
+        return False
+    else:
+        return False
+
+def insert_exerc():
+    df = get_data_from_table("exerc")
+    df = df.dropna(how="all")
+    df["NUMEXERC"] = (df["NUMEXERC"]).astype(int).astype(str).str.zfill(4)
+    sql = '''
+        INSERT INTO a_exerc(AREA, NUMEXERC, DESEXERC, HORAINICIO, ALTITRANS, NUMSUBMAP1, NUMSUBMAP2, NUMSUBMAP3, NUMSUBMAP4, QNH, LIMINFQNH,LIMSUPQNH, PENDQNH, INDCONDMET, NUMFORMMET, CONSOLES)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    '''
+    execs = df.to_dict("records")
+    execs_list = []
+    for exec in execs:
+        values = (config.AREA, exec['NUMEXERC'], exec['DESEXERC'], '09:00', '8500', '001', '', '', '', '1013', '955','1055', '0.1', 'N', '', '01')
+        execs_list.append((sql, values))
+    count = execute(execs_list)
+    if count > 0:
+        list_inserted_execs = df[['NUMEXERC', 'DESEXERC']].values.tolist()
+        for exec in list_inserted_execs:
+            log.info(f"Inserido Exercicio: {exec[0]} - {exec[1]} no banco de dados.")
+        print("Arquivo inserido com sucesso!")
+        input("Pressione enter para continuar...")
+        return True
+    elif count <= 0:
+        log.warn("Nao houveram alterações no banco. Cheque a tabela com os Exercicios.")
         input("Pressione enter para continuar...")
         return False
     else:
