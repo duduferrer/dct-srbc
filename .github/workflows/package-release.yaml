@@ -16,57 +16,98 @@ jobs:
       - name: Checkout do código
         uses: actions/checkout@v4
 
-      - name: Compilar no Container Manylinux (Compatibilidade Total)
-        # manylinux2014 garante suporte ao Ubuntu 14.04 (GLIBC 2.17+)
+      - name: Compilar com Nuitka no Container Manylinux (Compatibilidade GLIBC 2.17+)
         run: |
           docker run --rm -v ${{ github.workspace }}:/io quay.io/pypa/manylinux2014_x86_64 /bin/bash -c "
-            # 1. Instalar dependências do sistema necessárias para compilação
-            yum install -y zlib-devel bzip2-devel openssl-devel
+            set -e
  
-            # 2. Instalar Python e dependências do projeto
-            /opt/python/cp312-cp312/bin/pip install --upgrade pip
-            /opt/python/cp312-cp312/bin/pip install \
-              pyinstaller \
+            # ----------------------------------------------------------------
+            # 1. Ferramentas de sistema necessárias para o Nuitka compilar C
+            # ----------------------------------------------------------------
+            yum install -y gcc gcc-c++ make patchelf
+ 
+            # ----------------------------------------------------------------
+            # 2. Extrair libs estáticas do Python do manylinux
+            #    Obrigatório para que --static-libpython=yes funcione.
+            #    Sem isso, o Nuitka falha ao tentar embutir o Python no binário.
+            # ----------------------------------------------------------------
+            cd /opt/_internal && tar xf static-libs-for-embedding-only.tar.xz && cd /io
+ 
+            # ----------------------------------------------------------------
+            # 3. Definir qual Python usar
+            #    cp312 tem as static libs disponíveis no manylinux2014
+            # ----------------------------------------------------------------
+            PY=/opt/python/cp312-cp312/bin/python3
+            PIP=/opt/python/cp312-cp312/bin/pip
+ 
+            # ----------------------------------------------------------------
+            # 4. Instalar dependências
+            #    - ordered-set: recomendado pelo Nuitka para melhor performance
+            #    - zstandard: necessário para compressão do onefile
+            #    - demais: dependências do projeto
+            # ----------------------------------------------------------------
+            \$PIP install --upgrade pip
+            \$PIP install \
+              nuitka \
+              ordered-set \
+              zstandard \
               pandas \
               mysql-connector-python \
               numpy \
-              zstandard \
               openpyxl \
               python-dotenv \
               questionary
  
-            # 3. Compilar com PyInstaller
-            # --hidden-import garante que mysql.connector seja incluído corretamente
-            # --collect-all mysql_connector inclui todos os submodulos e dados
-            cd /io && /opt/python/cp312-cp312/bin/pyinstaller \
+            # ----------------------------------------------------------------
+            # 5. Compilar com Nuitka
+            #
+            # --onefile            : gera um único binário autoextraível
+            # --standalone         : inclui todas as dependências Python
+            # --static-libpython=yes: embute o Python estaticamente,
+            #                        eliminando dependência de libpython.so
+            #                        no sistema alvo (crucial para Ubuntu 14)
+            # --assume-yes-for-downloads: evita que o Nuitka trave esperando
+            #                        confirmação para baixar o backend C
+            #
+            # mysql.connector.plugins : carregados dinamicamente em runtime,
+            #                          o Nuitka não os detecta automaticamente
+            # mysql.connector.locales : dados de locale exigidos em runtime
+            # mysql.connector         : pacote principal e submódulos
+            #
+            # ATENÇÃO: não usar --include-package=mysql pois isso tentaria
+            # importar mysql.ai.ml que exige scikit-learn e causaria erro
+            # ----------------------------------------------------------------
+            cd /io && \$PY -m nuitka \
               --onefile \
-              --clean \
-              --strip \
-              --hidden-import=mysql \
-              --hidden-import=mysql.connector \
-              --hidden-import=mysql.connector.locales \
-              --hidden-import=mysql.connector.locales.eng \
-              --hidden-import=mysql.connector.plugins \
-              --hidden-import=mysql.connector.plugins.mysql_native_password \
-              --hidden-import=mysql.connector.plugins.caching_sha2_password \
-              --collect-all=mysql \
-              --hidden-import=pandas \
-              --hidden-import=numpy \
-              --hidden-import=openpyxl \
-              --hidden-import=questionary \
-              --hidden-import=dotenv \
-              --distpath=/io/dist \
-              --workpath=/io/build \
-              --specpath=/io \
+              --standalone \
+              --static-libpython=yes \
+              --assume-yes-for-downloads \
+              --output-dir=/io/dist \
+              --include-package=mysql.connector \
+              --include-package=mysql.connector.plugins \
+              --include-package=mysql.connector.locales \
+              --include-package-data=mysql.connector \
+              --include-package=pandas \
+              --include-package=numpy \
+              --include-package=openpyxl \
+              --include-package=questionary \
+              --include-package=dotenv \
               /io/main.py
  
-            # 4. Ajustar nome e permissões
-            if [ -f /io/dist/main ]; then
-              mv /io/dist/main /io/dist/dct-srbc-linux
+            # ----------------------------------------------------------------
+            # 6. Renomear binário e ajustar permissões
+            #    No Linux, Nuitka gera main.bin (não main)
+            # ----------------------------------------------------------------
+            if [ -f /io/dist/main.bin ]; then
+              mv /io/dist/main.bin /io/dist/dct-srbc-linux
               chmod +x /io/dist/dct-srbc-linux
-              chown $(id -u):$(id -g) /io/dist/dct-srbc-linux
+              chown \$(id -u):\$(id -g) /io/dist/dct-srbc-linux
+              echo 'Build concluído com sucesso!'
+              ls -lh /io/dist/dct-srbc-linux
             else
-              echo 'Erro: Binário não encontrado!' && exit 1
+              echo 'ERRO: Binário não encontrado. Conteúdo de /io/dist/:'
+              ls -la /io/dist/ || echo '/io/dist/ não existe'
+              exit 1
             fi
           "
 
