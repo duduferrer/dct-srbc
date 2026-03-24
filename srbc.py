@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from time import sleep
 from typing import Any
@@ -43,8 +44,9 @@ def get_data_xls(current_dir: Path, data_type, selected_file) -> Any:
         return None
 
 
-def insert_fix_into_db(df):
+def insert_fix_into_db():
     log.info("Iniciando inserção de fixos")
+    df = get_data_from_table(os.getenv("FIX"))
     df=df.rename(columns={"LATITUDE(DMM)":"CAMPOA", "LONGITUDE(DMM)":"CAMPOB", "NUMERO DO FIXO":"NUMERO"})
     numero_fixo = int(get_last_fix_number())
     df["NUMERO"] = df["NUMERO"].fillna(0).astype(int)
@@ -146,7 +148,8 @@ def create_area():
         execute([(sql_area, values_area),(sql_usuario, values_usuario)])
         config.AREA = area.upper()
 
-def insert_trj(df: pd.DataFrame):
+def insert_trj():
+    df = get_data_from_table(os.getenv("TRJ"))
     df = df.rename(columns={"NOME":"descricao", "STAR?(S/N)":"star"})
     df = df.dropna(how="all")
     df["NUMERO"] = (df["NUMERO"]).astype(int).astype(str).str.zfill(4)
@@ -204,7 +207,7 @@ def insert_trj(df: pd.DataFrame):
         return False
 
 def insert_exerc():
-    df = get_data_from_table("exerc")
+    df = get_data_from_table(os.getenv("EXERC"))
     df = df.dropna(how="all")
     df.fillna(0, inplace=True)
     df = df.replace(0, "")
@@ -234,7 +237,7 @@ def insert_exerc():
         return False
 
 def insert_exerc_traf():
-    df = get_data_from_table("acft-exerc-SCRIPT")
+    df = get_data_from_table(os.getenv("ACFT_EXERC"))
     df = df.dropna(how="all")
     df.fillna(0, inplace=True)
     df["EXERCICIO"] = (df["EXERCICIO"]).astype(int).astype(str).str.zfill(4)

@@ -1,3 +1,4 @@
+import os
 import sys
 
 import questionary
@@ -58,12 +59,10 @@ def selection_menu():
     option_selected = questionary.select("Escolha uma opção: ", choices=choices_list).ask()
     match option_selected:
         case "fix":
-            df = get_data_from_table("FIX")
-            insert_fix_into_db(df)
+            insert_fix_into_db()
             selection_menu()
         case "trj":
-            df = get_data_from_table("trj")
-            insert_trj(df)
+            insert_trj()
             selection_menu()
         case "ex":
             insert_exerc()
