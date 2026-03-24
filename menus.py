@@ -2,7 +2,8 @@ import os
 import sys
 
 import questionary
-from srbc import get_data_from_table, insert_fix_into_db, insert_trj, insert_exerc, insert_exerc_traf, insert_subs
+from srbc import get_data_from_table, insert_fix_into_db, insert_trj, insert_exerc, insert_exerc_traf, insert_subs, \
+    insert_ad
 import config
 from about import about
 from database import conn_test
@@ -53,6 +54,7 @@ def selection_menu():
                     questionary.Choice("Adicionar Subidas", "sub"),
                     questionary.Choice("Adicionar Exercicios", "ex"),
                     questionary.Choice("Adicionar Aeronaves de Exercicios", "acft"),
+                    questionary.Choice("Adicionar Aerodromo", "ad"),
                     questionary.Choice("Sobre", "about"),
                     questionary.Separator(),
                     questionary.Choice("Sair", "exit")]
@@ -72,6 +74,10 @@ def selection_menu():
             selection_menu()
         case "sub":
             insert_subs()
+            selection_menu()
+        case "ad":
+            insert_ad()
+            selection_menu()
         case "about":
             about()
         case "exit":

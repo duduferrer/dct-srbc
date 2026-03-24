@@ -338,3 +338,35 @@ def insert_subs():
         return False
     else:
         return False
+
+def insert_ad():
+    clear_screen()
+    print("-------- CRIAÇÃO DE AERODROMO --------")
+    indicativo = questionary.text("Indicativo: ", validate=validate_size(4)).ask()
+    nome = questionary.text("Nome: ", validate=validate_size(15)).ask()
+    elev = questionary.text("Elevação: ", validate=validate_size(5)).ask()
+    res = query("SELECT * FROM a_aerod WHERE AREA = %s AND indicativo = %s;", (config.AREA, indicativo))
+    if len(res) != 0:
+        from menus import area_selection
+        print("Aerodromo já existe.")
+        sleep(2)
+        return
+    else:
+        sql_ad = """
+                INSERT INTO a_aerod
+                (AREA, INDICATIVO, NOME, ELEVACAO)
+                VALUES (%s, %s, %s, %s)
+                """
+        values_ad = (config.AREA, indicativo.upper(), nome.upper(), elev.upper())
+        count = execute([(sql_ad, values_ad)])
+        if count > 0:
+            log.info(f"Aerodromo: {indicativo} inserido no banco de dados.")
+            sleep(2)
+            return True
+        elif count <= 0:
+            log.warn("Nao foi possivel inserir o aerodromo")
+            input("Pressione enter para continuar...")
+            return False
+        else:
+            log.warn("Erro desconhecido ao inserir o aerodromo.")
+            return False
