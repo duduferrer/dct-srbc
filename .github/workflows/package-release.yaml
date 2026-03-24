@@ -20,18 +20,27 @@ jobs:
         #manylinux2014 para garantir suporte ao Ubuntu 14.04 (GLIBC antiga)
         run: |
           docker run --rm -v ${{ github.workspace }}:/io quay.io/pypa/manylinux2014_x86_64 /bin/bash -c "
-            /opt/python/cp312-cp312/bin/pip install nuitka pandas mysql-connector-python numpy zstandard
-            
-            if [ -f /io/requirements.txt ]; then /opt/python/cp312-cp312/bin/pip install -r /io/requirements.txt; fi
-            
+            # 1. Extrair as bibliotecas estáticas exigidas pelo Nuitka no Manylinux
+            cd /opt/_internal && tar xf static-libs-for-embedding-only.tar.xz && cd /io
+          
+            # 2. Instalar dependências (incluindo as novas que você adicionou como openpyxl e dotenv)
+            /opt/python/cp312-cp312/bin/pip install nuitka pandas mysql-connector-python numpy zstandard openpyxl python-dotenv questionary
+          
+            # 3. Compilar com Nuitka forçando linkagem estática
             /opt/python/cp312-cp312/bin/python -m nuitka \
               --onefile \
               --standalone \
+              --static-libpython=yes \
               --output-dir=/io/dist \
               /io/main.py
-            
-            mv /io/dist/main.bin /io/dist/dct-srbc-linux
-            chown $(id -u):$(id -g) /io/dist/dct-srbc-linux
+          
+            # 4. Ajustar nome e permissões
+            if [ -f /io/dist/main.bin ]; then
+              mv /io/dist/main.bin /io/dist/dct-srbc-linux
+              chown $(id -u):$(id -g) /io/dist/dct-srbc-linux
+            else
+              echo 'Erro: Binário não encontrado!' && exit 1
+            fi
           "
 
       - name: Criar GitHub Release
