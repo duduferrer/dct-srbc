@@ -57,7 +57,6 @@ def insert_fix_into_db(df):
     df = df.merge(old_fix_df[["NUMERO", "NOME"]], on="NOME", how="left", suffixes=("", "_OLD"))
     mask = df['NUMERO_OLD'].notnull()
     existing_fix = df.loc[mask, ['NOME', 'CAMPOA', 'CAMPOB']].values.tolist()
-    print(df)
     input()
     for fix in existing_fix:
         log.info(f"Fixo: {fix[0]} já existente. Atualizado com os valores: {fix[1]}, {fix[2]}")
@@ -178,6 +177,8 @@ def insert_trj(df: pd.DataFrame):
     df.fillna(0, inplace=True)
     df[["TRJ","FIXO","DIST(SE POLAR)","RADIAL/GRAUS(SE POLAR)","CAMPO D", "ALTITUDE", "VELOCIDADE(TAS)", "PROCEDIMENTO QUE LIGA"]] = (df[["TRJ","FIXO","DIST(SE POLAR)","RADIAL/GRAUS(SE POLAR)","CAMPO D", "ALTITUDE", "VELOCIDADE(TAS)", "PROCEDIMENTO QUE LIGA"]]).astype(int).astype(str)
     df["TRJ"] = (df["TRJ"]).astype(int).astype(str).str.zfill(4)
+    df["NUMBKP"] = (df["NUMBKP"]).astype(int).astype(str).str.zfill(3)
+    df["FIXO"] = (df["FIXO"]).astype(int).astype(str).str.zfill(4)
     df = df.replace("0", "")
     pts_trjs = df.to_dict("records")
     sql_pts_trj = '''
@@ -185,7 +186,6 @@ def insert_trj(df: pd.DataFrame):
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     '''
     pts_queries_list = []
-    print(df)
     input()
     for pt in pts_trjs:
         values_pt = (config.AREA, pt["TRJ"], pt["Nro do Ponto"], pt["Tipo Coord(F/D)"], pt["FIXO"] ,pt["DIST(SE POLAR)"], pt["RADIAL/GRAUS(SE POLAR)"], pt["CAMPO D"], pt["ALTITUDE"], pt["VELOCIDADE(TAS)"], pt["PROCEDIMENTO QUE LIGA"])
