@@ -4,42 +4,66 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch: # Permite execução manual
+  workflow_dispatch:
 
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Permissão para criar a Release
+      contents: write
 
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
 
       - name: Compilar no Container Manylinux (Compatibilidade Total)
-        #manylinux2014 para garantir suporte ao Ubuntu 14.04 (GLIBC antiga)
+        # manylinux2014 garante suporte ao Ubuntu 14.04 (GLIBC 2.17+)
         run: |
           docker run --rm -v ${{ github.workspace }}:/io quay.io/pypa/manylinux2014_x86_64 /bin/bash -c "
-            # 1. Extrair as bibliotecas estáticas exigidas pelo Nuitka no Manylinux
-            cd /opt/_internal && tar xf static-libs-for-embedding-only.tar.xz && cd /io
-          
-            # 2. Instalar dependências (incluindo as novas que você adicionou como openpyxl e dotenv)
-            /opt/python/cp312-cp312/bin/pip install nuitka pandas mysql-connector-python numpy zstandard openpyxl python-dotenv questionary
-          
-            # 3. Compilar com Nuitka corrigindo plugins e localização
-            /opt/python/cp312-cp312/bin/python -m nuitka \
+            # 1. Instalar dependências do sistema necessárias para compilação
+            yum install -y zlib-devel bzip2-devel openssl-devel
+ 
+            # 2. Instalar Python e dependências do projeto
+            /opt/python/cp312-cp312/bin/pip install --upgrade pip
+            /opt/python/cp312-cp312/bin/pip install \
+              pyinstaller \
+              pandas \
+              mysql-connector-python \
+              numpy \
+              zstandard \
+              openpyxl \
+              python-dotenv \
+              questionary
+ 
+            # 3. Compilar com PyInstaller
+            # --hidden-import garante que mysql.connector seja incluído corretamente
+            # --collect-all mysql_connector inclui todos os submodulos e dados
+            cd /io && /opt/python/cp312-cp312/bin/pyinstaller \
               --onefile \
-              --standalone \
-              --static-libpython=yes \
-              --include-package=mysql.connector \
-              --include-package-data=mysql.connector \
+              --clean \
+              --strip \
+              --hidden-import=mysql \
+              --hidden-import=mysql.connector \
+              --hidden-import=mysql.connector.locales \
+              --hidden-import=mysql.connector.locales.eng \
+              --hidden-import=mysql.connector.plugins \
+              --hidden-import=mysql.connector.plugins.mysql_native_password \
+              --hidden-import=mysql.connector.plugins.caching_sha2_password \
               --collect-all=mysql \
-              --output-dir=/io/dist \
+              --hidden-import=pandas \
+              --hidden-import=numpy \
+              --hidden-import=openpyxl \
+              --hidden-import=questionary \
+              --hidden-import=dotenv \
+              --distpath=/io/dist \
+              --workpath=/io/build \
+              --specpath=/io \
               /io/main.py
-          
+ 
             # 4. Ajustar nome e permissões
-            if [ -f /io/dist/main.bin ]; then
-              mv /io/dist/main.bin /io/dist/dct-srbc-linux
+            if [ -f /io/dist/main ]; then
+              mv /io/dist/main /io/dist/dct-srbc-linux
+              chmod +x /io/dist/dct-srbc-linux
               chown $(id -u):$(id -g) /io/dist/dct-srbc-linux
             else
               echo 'Erro: Binário não encontrado!' && exit 1
@@ -55,6 +79,6 @@ jobs:
             ### Release DCT-SRBC
             Compilação automática otimizada para kernels antigos (Ubuntu 14.04+).
             - **Versão:** ${{ github.ref_name }}
-            - **Sistema Alvo:** Linux x86_64 (Legacy GLIBC)
+            - **Sistema Alvo:** Linux x86_64 (Legacy GLIBC 2.17+)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
