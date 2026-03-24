@@ -206,6 +206,8 @@ def insert_trj(df: pd.DataFrame):
 def insert_exerc():
     df = get_data_from_table("exerc")
     df = df.dropna(how="all")
+    df.fillna(0, inplace=True)
+    df = df.replace(0, "")
     df["NUMEXERC"] = (df["NUMEXERC"]).astype(int).astype(str).str.zfill(4)
     sql = '''
         INSERT INTO a_exerc(AREA, NUMEXERC, DESEXERC, HORAINICIO, ALTITRANS, NUMSUBMAP1, NUMSUBMAP2, NUMSUBMAP3, NUMSUBMAP4, QNH, LIMINFQNH,LIMSUPQNH, PENDQNH, INDCONDMET, NUMFORMMET, CONSOLES)
@@ -221,6 +223,44 @@ def insert_exerc():
         list_inserted_execs = df[['NUMEXERC', 'DESEXERC']].values.tolist()
         for exec in list_inserted_execs:
             log.info(f"Inserido Exercicio: {exec[0]} - {exec[1]} no banco de dados.")
+        print("Arquivo inserido com sucesso!")
+        input("Pressione enter para continuar...")
+        return True
+    elif count <= 0:
+        log.warn("Nao houveram alterações no banco. Cheque a tabela com os Exercicios.")
+        input("Pressione enter para continuar...")
+        return False
+    else:
+        return False
+
+def insert_exerc_traf():
+    df = get_data_from_table("acft-exerc-SCRIPT")
+    df = df.dropna(how="all")
+    df.fillna(0, inplace=True)
+    df["EXERCICIO"] = (df["EXERCICIO"]).astype(int).astype(str).str.zfill(4)
+    df["TRAF"] = (df["TRAF"]).astype(int).astype(str).str.zfill(4)
+    df["FIXO"] = (df["FIXO"]).astype(int).astype(str).str.zfill(4)
+    df["PIL"] = (df["PIL"]).astype(int).astype(str).str.zfill(2)
+    df["ATIV"] = (df["ATIV"]).astype(int).astype(str).str.zfill(3)
+    replace_cols = df.columns.difference(["ATIV"])
+    df[replace_cols] = df[replace_cols].replace(0, "")
+    sql = '''
+        INSERT INTO a_trafe(area , numexerc , numtrafego , designador , ssr , indicativo , origem , destino , procedimen , nivel , velocidade , proa , tipocoord , campoa , campob , campoc , pilotagem , temptrafeg, rmk , niveltrj , veltrj)
+        VALUES (%s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s, %s , %s , %s)
+    '''
+
+    trafs = df.to_dict("records")
+    trafs_list = []
+    print(df)
+    input()
+    for traf in trafs:
+        values = (config.AREA, traf['EXERCICIO'], traf["TRAF"], traf["DESIG"], traf["SSR"], traf["INDICATIVO"], traf["DEP"], traf["ARR"], traf["PROCED"], traf["NIV"], traf["VEL(IAS)"], traf["PROA"], traf["TIPO DE COORD(F/D)"], traf["FIXO"], traf["DIST(SE POLAR)"], traf["RADIAL/GRAUS(SE POLAR)"], traf["PIL"], traf["ATIV"], traf["RMK"], traf["NIV"], traf["VEL(IAS)"])
+        trafs_list.append((sql, values))
+    count = execute(trafs_list)
+    if count > 0:
+        list_inserted_trafs = df[['EXERCICIO', 'INDICATIVO']].values.tolist()
+        for traf in list_inserted_trafs:
+            log.info(f"Inserido Trafego: {traf[1]}, Exercicio: {traf[0]} no banco de dados.")
         print("Arquivo inserido com sucesso!")
         input("Pressione enter para continuar...")
         return True

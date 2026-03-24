@@ -1,7 +1,7 @@
 import sys
 
 import questionary
-from srbc import get_data_from_table, insert_fix_into_db, insert_trj, insert_exerc
+from srbc import get_data_from_table, insert_fix_into_db, insert_trj, insert_exerc, insert_exerc_traf
 import config
 from about import about
 from database import conn_test
@@ -49,6 +49,7 @@ def selection_menu():
     print(f'Editando a área: {config.AREA}')
     choices_list = [questionary.Choice("Adicionar Fixos", "fix"),
                     questionary.Choice("Adicionar Trajetorias", "trj"),
+                    questionary.Choice("Adicionar Subidas", "sub"),
                     questionary.Choice("Adicionar Exercicios", "ex"),
                     questionary.Choice("Adicionar Aeronaves de Exercicios", "acft"),
                     questionary.Choice("Sobre", "about"),
@@ -68,6 +69,9 @@ def selection_menu():
             insert_exerc()
             selection_menu()
         case "acft":
+            insert_exerc_traf()
+            selection_menu()
+        case "sub":
             unavailable()
         case "about":
             about()
