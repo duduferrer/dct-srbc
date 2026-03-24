@@ -26,11 +26,14 @@ jobs:
             # 2. Instalar dependências (incluindo as novas que você adicionou como openpyxl e dotenv)
             /opt/python/cp312-cp312/bin/pip install nuitka pandas mysql-connector-python numpy zstandard openpyxl python-dotenv questionary
           
-            # 3. Compilar com Nuitka forçando linkagem estática
+            # 3. Compilar com Nuitka corrigindo plugins e localização
             /opt/python/cp312-cp312/bin/python -m nuitka \
               --onefile \
               --standalone \
               --static-libpython=yes \
+              --include-package=mysql.connector \
+              --include-package-data=mysql.connector \
+              --collect-all=mysql \
               --output-dir=/io/dist \
               /io/main.py
           
