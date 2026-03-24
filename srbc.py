@@ -173,7 +173,7 @@ def insert_trj():
         log.warn("Nao houveram alterações no banco. Cheque a tabela com as novas trjs.")
         input("Pressione enter para continuar...")
     # PONTOS TRJ
-    df = get_data_from_table("pts_traje-SCRIPT", XLS_PATH)
+    df = get_data_from_table(os.getenv("PTS_TRJ"), XLS_PATH)
     df = df.dropna(how="all")
     df = df[df["Nro do Ponto"]!=0]
     df.fillna(0, inplace=True)
@@ -254,8 +254,6 @@ def insert_exerc_traf():
 
     trafs = df.to_dict("records")
     trafs_list = []
-    print(df)
-    input()
     for traf in trafs:
         values = (config.AREA, traf['EXERCICIO'], traf["TRAF"], traf["DESIG"], traf["SSR"], traf["INDICATIVO"], traf["DEP"], traf["ARR"], traf["PROCED"], traf["NIV"], traf["VEL(IAS)"], traf["PROA"], traf["TIPO DE COORD(F/D)"], traf["FIXO"], traf["DIST(SE POLAR)"], traf["RADIAL/GRAUS(SE POLAR)"], traf["PIL"], traf["ATIV"], traf["RMK"], traf["NIV"], traf["VEL(IAS)"])
         trafs_list.append((sql, values))
@@ -269,6 +267,73 @@ def insert_exerc_traf():
         return True
     elif count <= 0:
         log.warn("Nao houveram alterações no banco. Cheque a tabela com os Exercicios.")
+        input("Pressione enter para continuar...")
+        return False
+    else:
+        return False
+
+def insert_subs():
+    df = get_data_from_table(os.getenv("SUB"))
+    df = df.dropna(how="all")
+    df.fillna(0, inplace=True)
+    df["PISTA"] = (df["PISTA"]).astype(int).astype(str)
+    df["NUMERO"] = (df["NUMERO"]).astype(int).astype(str).str.zfill(3)
+    sql = '''
+        INSERT IGNORE INTO a_subida(area, numero, nome, aerodromo, pista)
+        VALUES (%s , %s , %s , %s , %s )
+    '''
+    subs = df.to_dict("records")
+    subs_list = []
+    for sub in subs:
+        values = (config.AREA, sub["NUMERO"], sub["NOME"], sub["AERODROMO"], sub["PISTA"]+"C")
+        subs_list.append((sql, values))
+    count = execute(subs_list)
+    if count > 0:
+        list_inserted_subs = df[['NOME', 'AERODROMO', 'PISTA']].values.tolist()
+        for sub in list_inserted_subs:
+            log.info(f"Procedimento de Subida adicionado: {sub[0]} - {sub[1]} {sub[2]} no banco de dados.")
+        print("Arquivo inserido com sucesso!")
+        input("Pressione enter para continuar...")
+    elif count <= 0:
+        log.warn("Nao houveram alterações no banco. Cheque a tabela com os Exercicios.")
+        input("Pressione enter para continuar...")
+
+    # PONTOS TRJ
+    df = get_data_from_table(os.getenv("PTS_SUB"), XLS_PATH)
+    df = df.dropna(how="all")
+    df = df[df["NRO PONTO"] != 0]
+    df.fillna({'PROCEDIMENTO QUE LIGA':""}, inplace=True)
+    df.fillna(0, inplace=True)
+    df[["SUB", "NRO PONTO", "DIST(SE POLAR)", "RADIAL/GRAUS(SE POLAR)", "CAMPO D", "ALTITUDE", "GRAD SUB", "VELOCIDADE(IAS)"]] = (
+        (df[["SUB", "NRO PONTO", "DIST(SE POLAR)", "RADIAL/GRAUS(SE POLAR)", "CAMPO D", "ALTITUDE", "GRAD SUB", "VELOCIDADE(IAS)",
+        ]]).astype(int).astype(str))
+    df["SUB"] = (df["SUB"]).astype(int).astype(str).str.zfill(3)
+    df["NRO PONTO"] = (df["NRO PONTO"]).astype(int).astype(str).str.zfill(3)
+    df["FIXO"] = (df["FIXO"]).astype(int).astype(str).str.zfill(4)
+    df = df.replace("0", "")
+    pts_sub = df.to_dict("records")
+    sql_pts_trj = '''
+        INSERT INTO a_bpsub(AREA, NUMSUB, NUMBKP, TIPOCOORD, CAMPOA, CAMPOB, CAMPOC, CAMPOD, ALTITUDE, RAZSUB, VELOCIDADE,PROCEDIMEN)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    '''
+    pts_queries_list = []
+    print(df)
+    input()
+    for pt in pts_sub:
+        values_pt = (config.AREA, pt["SUB"], pt["NRO PONTO"], pt["TIPO COORD(F/D)"], pt["FIXO"],
+                     pt["DIST(SE POLAR)"], pt["RADIAL/GRAUS(SE POLAR)"], pt["CAMPO D"], pt["ALTITUDE"], pt["GRAD SUB"],
+                     pt["VELOCIDADE(IAS)"], pt["PROCEDIMENTO QUE LIGA"])
+        pts_queries_list.append((sql_pts_trj, values_pt))
+    count_pts = execute(pts_queries_list)
+    if count_pts > 0:
+        list_inserted_pts = df[['FIXO', 'SUB']].values.tolist()
+        for pt in list_inserted_pts:
+            log.info(f"Inserido FIXO: {pt[0]}, da SUB {pt[1]} no banco de dados.")
+        print("Arquivo inserido com sucesso!")
+        input("Pressione enter para continuar...")
+        return True
+    elif count_pts <= 0:
+        log.warn("Nao houveram alterações no banco. Cheque a tabela com os fixos das SUB.")
         input("Pressione enter para continuar...")
         return False
     else:
