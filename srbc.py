@@ -176,6 +176,7 @@ def insert_trj():
     df = get_data_from_table(config.PTS_TRJ, XLS_PATH)
     df = df.dropna(how="all")
     df = df[df["Nro do Ponto"]!=0]
+    df.fillna({'PROCEDIMENTO QUE LIGA':"0"}, inplace=True)
     df.fillna(0, inplace=True)
     df[["TRJ","FIXO","DIST(SE POLAR)","RADIAL/GRAUS(SE POLAR)","CAMPO D", "ALTITUDE", "VELOCIDADE(TAS)", "PROCEDIMENTO QUE LIGA"]] = (df[["TRJ","FIXO","DIST(SE POLAR)","RADIAL/GRAUS(SE POLAR)","CAMPO D", "ALTITUDE", "VELOCIDADE(TAS)", "PROCEDIMENTO QUE LIGA"]]).astype(int).astype(str)
     df["TRJ"] = (df["TRJ"]).astype(int).astype(str).str.zfill(4)
@@ -310,7 +311,7 @@ def insert_subs():
     df = get_data_from_table(config.PTS_SUB, XLS_PATH)
     df = df.dropna(how="all")
     df = df[df["NRO PONTO"] != 0]
-    df.fillna({'PROCEDIMENTO QUE LIGA':""}, inplace=True)
+    df.fillna({'PROCEDIMENTO QUE LIGA':"0"}, inplace=True)
     df.fillna(0, inplace=True)
     df[["SUB", "NRO PONTO", "DIST(SE POLAR)", "RADIAL/GRAUS(SE POLAR)", "CAMPO D", "ALTITUDE", "GRAD SUB", "VELOCIDADE(IAS)"]] = (
         (df[["SUB", "NRO PONTO", "DIST(SE POLAR)", "RADIAL/GRAUS(SE POLAR)", "CAMPO D", "ALTITUDE", "GRAD SUB", "VELOCIDADE(IAS)",
