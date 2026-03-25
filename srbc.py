@@ -178,7 +178,7 @@ def insert_trj():
     df = df[df["Nro do Ponto"]!=0]
     df.fillna({'PROCEDIMENTO QUE LIGA':"0"}, inplace=True)
     df.fillna(0, inplace=True)
-    df[["TRJ","FIXO","DIST(SE POLAR)","RADIAL/GRAUS(SE POLAR)","CAMPO D", "ALTITUDE", "VELOCIDADE(TAS)", "PROCEDIMENTO QUE LIGA"]] = (df[["TRJ","FIXO","DIST(SE POLAR)","RADIAL/GRAUS(SE POLAR)","CAMPO D", "ALTITUDE", "VELOCIDADE(TAS)", "PROCEDIMENTO QUE LIGA"]]).astype(int).astype(str)
+    df[["TRJ","FIXO","DIST(SE POLAR)","RADIAL/GRAUS(SE POLAR)","CAMPO D", "ALTITUDE", "VELOCIDADE(TAS)"]] = (df[["TRJ","FIXO","DIST(SE POLAR)","RADIAL/GRAUS(SE POLAR)","CAMPO D", "ALTITUDE", "VELOCIDADE(TAS)"]]).astype(int).astype(str)
     df["TRJ"] = (df["TRJ"]).astype(int).astype(str).str.zfill(4)
     df["Nro do Ponto"] = (df["Nro do Ponto"]).astype(int).astype(str).str.zfill(3)
     df["FIXO"] = (df["FIXO"]).astype(int).astype(str).str.zfill(4)
