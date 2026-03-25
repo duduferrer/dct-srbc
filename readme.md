@@ -1,19 +1,24 @@
-## MANUAL
-1 - Abra o terminal e digite: `pip install -r requirements.txt`
+##                 MANUAL
+### FUNCIONAL PARA UBUNTU 14. (VERSAO USADA NO SRBC)
+#### O SCRIPT BUSCA OS ARQUIVOS XLSX NA PASTA QUE ELE ESTÁ
+#### NÃO MUDE O NOME DAS ABAS DA PLANILHA NEM OS NOMES DAS COLUNAS
+1 - Use a planilha: https://docs.google.com/spreadsheets/d/1lnVm8DRgBSqtCVwLmC7i6doyQH959zcGORY_jP8764E/edit?gid=7867490#gid=7867490 como modelo
 <br>
-2 - Preencha os campos de `.env` com os `dados de conexão ao mysql` do srbc.
+2 - Vá em releases e baixe a versão mais recente
 <br>
-3 - Execute `windows_execute.bat`
+3 - Abra o terminal e navegue até a pasta onde está o seu arquivo e a planilha em .xlsx
 <br>
-4 - Selecione a planilha com os fixos.
-Obs.: A planilha deve conter os campos: 
+4 - Execute o arquivo com ./nome-do-arquivo
 <br>
-`
-AREA | NUMERO | INDICATIVO | NOME |	TIPO |	FREQUENCIA | TIPOCOORD | CAMPOA | CAMPOB
-`
+As configurações usadas para conexão ao SRBC sao as padroes do SRBC:
+DB_HOST=localhost
 <br>
- Os campos: `INDICATIVO`, `TIPO` E `FREQUENCIA` PODEM FICAR EM BRANCO. 
+DB_USER=srbc
 <br>
-TIPO `COORD` DEVE SER PREENCHIDO COM **G**. 
+DB_PASSWORD=
 <br>
-`CAMPOA` = 1929.850S, `CAMPOB` = 04405.670W
+DB_DATABASE=siscta
+<br>
+DB_PORT=3306
+<br>
+Caso necessite, o programa dá a opção de alterar.
