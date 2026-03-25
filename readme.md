@@ -2,8 +2,10 @@
 ### FUNCIONAL PARA UBUNTU 14. (VERSAO USADA NO SRBC)
 #### O SCRIPT BUSCA OS ARQUIVOS XLSX NA PASTA QUE ELE ESTÁ
 #### NÃO MUDE O NOME DAS ABAS DA PLANILHA NEM OS NOMES DAS COLUNAS
-1 - Use a planilha: https://docs.google.com/spreadsheets/d/1lnVm8DRgBSqtCVwLmC7i6doyQH959zcGORY_jP8764E/edit?gid=7867490#gid=7867490 como modelo
+1 - Use a planilha: https://docs.google.com/spreadsheets/d/1lnVm8DRgBSqtCVwLmC7i6doyQH959zcGORY_jP8764E/edit?gid=7867490#gid=7867490 como modelo.
 <br>
+#### USE O SCRIPT EXPORTAR, NA PLANILHA, PARA BAIXAR O XLSX. ELE REMOVE AS FORMULAS PARA NAO TER ERROS DE IMPORTAÇÃO
+
 2 - Vá em releases e baixe a versão mais recente
 <br>
 3 - Abra o terminal e navegue até a pasta onde está o seu arquivo e a planilha em .xlsx
