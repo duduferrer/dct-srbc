@@ -4,3 +4,4 @@
 /__pycache__
 compose.yaml
 dct_srbc_log.txt
+*.xlsx
