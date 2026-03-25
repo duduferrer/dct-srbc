@@ -46,7 +46,7 @@ def get_data_xls(current_dir: Path, data_type, selected_file) -> Any:
 
 def insert_fix_into_db():
     log.info("Iniciando inserção de fixos")
-    df = get_data_from_table(os.getenv("FIX"))
+    df = get_data_from_table(config.FIX)
     df=df.rename(columns={"LATITUDE(DMM)":"CAMPOA", "LONGITUDE(DMM)":"CAMPOB", "NUMERO DO FIXO":"NUMERO"})
     numero_fixo = int(get_last_fix_number())
     df["NUMERO"] = df["NUMERO"].fillna(0).astype(int)
@@ -149,7 +149,7 @@ def create_area():
         config.AREA = area.upper()
 
 def insert_trj():
-    df = get_data_from_table(os.getenv("TRJ"))
+    df = get_data_from_table(config.TRJ)
     df = df.rename(columns={"NOME":"descricao", "STAR?(S/N)":"star"})
     df = df.dropna(how="all")
     df["NUMERO"] = (df["NUMERO"]).astype(int).astype(str).str.zfill(4)
@@ -173,13 +173,13 @@ def insert_trj():
         log.warn("Nao houveram alterações no banco. Cheque a tabela com as novas trjs.")
         input("Pressione enter para continuar...")
     # PONTOS TRJ
-    df = get_data_from_table(os.getenv("PTS_TRJ"), XLS_PATH)
+    df = get_data_from_table(config.PTS_TRJ, XLS_PATH)
     df = df.dropna(how="all")
     df = df[df["Nro do Ponto"]!=0]
     df.fillna(0, inplace=True)
     df[["TRJ","FIXO","DIST(SE POLAR)","RADIAL/GRAUS(SE POLAR)","CAMPO D", "ALTITUDE", "VELOCIDADE(TAS)", "PROCEDIMENTO QUE LIGA"]] = (df[["TRJ","FIXO","DIST(SE POLAR)","RADIAL/GRAUS(SE POLAR)","CAMPO D", "ALTITUDE", "VELOCIDADE(TAS)", "PROCEDIMENTO QUE LIGA"]]).astype(int).astype(str)
     df["TRJ"] = (df["TRJ"]).astype(int).astype(str).str.zfill(4)
-    df["NUMBKP"] = (df["NUMBKP"]).astype(int).astype(str).str.zfill(3)
+    df["Nro do Ponto"] = (df["Nro do Ponto"]).astype(int).astype(str).str.zfill(3)
     df["FIXO"] = (df["FIXO"]).astype(int).astype(str).str.zfill(4)
     df = df.replace("0", "")
     pts_trjs = df.to_dict("records")
@@ -207,7 +207,7 @@ def insert_trj():
         return False
 
 def insert_exerc():
-    df = get_data_from_table(os.getenv("EXERC"))
+    df = get_data_from_table(config.EXERCICIO)
     df = df.dropna(how="all")
     df.fillna(0, inplace=True)
     df = df.replace(0, "")
@@ -237,9 +237,16 @@ def insert_exerc():
         return False
 
 def insert_exerc_traf():
-    df = get_data_from_table(os.getenv("ACFT_EXERC"))
+    df = get_data_from_table(config.ACFT_EXERC)
     df = df.dropna(how="all")
-    df.fillna(0, inplace=True)
+    cols_int = ["EXERCICIO", "TRAF", "SSR", "NIV", "VEL(IAS)",
+                "PROA", "FIXO", "DIST(SE POLAR)", "RADIAL/GRAUS(SE POLAR)",
+                "PIL", "ATIV"]
+    df[cols_int] = df[cols_int].fillna(0)
+    cols_str = ["DESIG", "INDICATIVO", "DEP", "ARR", "PROCED",
+                "TIPO DE COORD(F/D)", "RMK"]
+    df[cols_str] = df[cols_str].fillna("")
+
     df["EXERCICIO"] = (df["EXERCICIO"]).astype(int).astype(str).str.zfill(4)
     df["TRAF"] = (df["TRAF"]).astype(int).astype(str).str.zfill(4)
     df["FIXO"] = (df["FIXO"]).astype(int).astype(str).str.zfill(4)
@@ -247,6 +254,7 @@ def insert_exerc_traf():
     df["ATIV"] = (df["ATIV"]).astype(int).astype(str).str.zfill(3)
     replace_cols = df.columns.difference(["ATIV"])
     df[replace_cols] = df[replace_cols].replace(0, "")
+    df = df[df["EXERCICIO"] != "0000"]
     sql = '''
         INSERT INTO a_trafe(area , numexerc , numtrafego , designador , ssr , indicativo , origem , destino , procedimen , nivel , velocidade , proa , tipocoord , campoa , campob , campoc , pilotagem , temptrafeg, rmk , niveltrj , veltrj)
         VALUES (%s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s, %s , %s , %s)
@@ -273,7 +281,7 @@ def insert_exerc_traf():
         return False
 
 def insert_subs():
-    df = get_data_from_table(os.getenv("SUB"))
+    df = get_data_from_table(config.SUB)
     df = df.dropna(how="all")
     df.fillna(0, inplace=True)
     df["PISTA"] = (df["PISTA"]).astype(int).astype(str)
@@ -298,8 +306,8 @@ def insert_subs():
         log.warn("Nao houveram alterações no banco. Cheque a tabela com os Exercicios.")
         input("Pressione enter para continuar...")
 
-    # PONTOS TRJ
-    df = get_data_from_table(os.getenv("PTS_SUB"), XLS_PATH)
+    # PONTOS SUB
+    df = get_data_from_table(config.PTS_SUB, XLS_PATH)
     df = df.dropna(how="all")
     df = df[df["NRO PONTO"] != 0]
     df.fillna({'PROCEDIMENTO QUE LIGA':""}, inplace=True)
@@ -317,8 +325,6 @@ def insert_subs():
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     '''
     pts_queries_list = []
-    print(df)
-    input()
     for pt in pts_sub:
         values_pt = (config.AREA, pt["SUB"], pt["NRO PONTO"], pt["TIPO COORD(F/D)"], pt["FIXO"],
                      pt["DIST(SE POLAR)"], pt["RADIAL/GRAUS(SE POLAR)"], pt["CAMPO D"], pt["ALTITUDE"], pt["GRAD SUB"],

@@ -23,25 +23,15 @@ def coordIsValid(coord)->bool:
         return False
 
 def load_db_credentials(host, user, password, database, port):
-    if host == "":
-        config.HOST = os.getenv('DB_HOST')
-    else:
+    if host != "":
         config.HOST = host
-    if user == "":
-        config.USER = os.getenv('DB_USER')
-    else:
+    if user != "":
         config.USER = user
-    if password == "":
-        config.PASSWORD = os.getenv('DB_PASSWORD')
-    else:
+    if password != "":
         config.PASSWORD = password
-    if database == "":
-        config.DATABASE = os.getenv('DB_DATABASE')
-    else:
+    if database != "":
         config.DATABASE = database
-    if port == "":
-        config.PORT = os.getenv('DB_PORT')
-    else:
+    if port != "":
         config.PORT = port
 
 def clear_screen():

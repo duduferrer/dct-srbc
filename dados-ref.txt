@@ -1,8 +1,8 @@
-DB_HOST=localhost
-DB_USER=srbc
-DB_PASSWORD=
-DB_DATABASE=siscta
-DB_PORT=3306
+#DB_HOST=localhost
+#DB_USER=srbc
+#DB_PASSWORD=
+#DB_DATABASE=siscta
+#DB_PORT=3306
 
 #ABAS DA PLANILHA
 EXERCICIO=exerc
@@ -15,8 +15,8 @@ FIX=FIX
 
 ##PADRAO SRBC: user=srbc / pass=sem senha / db=siscta
 ##docker
-#DB_HOST=localhost
-#DB_USER=app_user
-#DB_PASSWORD=app_password
-#DB_DATABASE=srbc53
-#DB_PORT=3306
+DB_HOST=localhost
+DB_USER=app_user
+DB_PASSWORD=app_password
+DB_DATABASE=srbc53
+DB_PORT=3306
