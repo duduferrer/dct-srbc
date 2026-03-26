@@ -377,3 +377,59 @@ def insert_ad():
         else:
             log.warn("Erro desconhecido ao inserir o aerodromo.")
             return False
+
+def insert_maps():
+    df = get_data_from_table(config.MAP)
+    df = df.dropna(how="all")
+    df["numsubmap"] = (df["numsubmap"]).astype(int).astype(str).str.zfill(3)
+    sql = '''
+        INSERT IGNORE INTO a_smapa(area, numsubmap, descsubmap)
+        VALUES (%s , %s , %s)
+    '''
+    maps = df.to_dict("records")
+    maps_list = []
+    for map in maps:
+        values = (config.AREA, map["numsubmap"], map["descricao"])
+        maps_list.append((sql, values))
+    count = execute(maps_list)
+    if count > 0:
+        list_inserted_maps = df['descricao'].values.tolist()
+        for map in list_inserted_maps:
+            log.info(f"Submapa: {map} adicionado no banco de dados.")
+        print("Arquivo inserido com sucesso!")
+        input("Pressione enter para continuar...")
+    elif count <= 0:
+        log.warn("Nao houveram alterações no banco. Cheque a tabela com os Submapas.")
+        input("Pressione enter para continuar...")
+
+    # PONTOS MAPA
+    df = get_data_from_table(config.PTS_MAP, XLS_PATH)
+    df = df.dropna(how="all")
+    df["NUMSUBMAP"] = (df["NUMSUBMAP"]).astype(int).astype(str).str.zfill(3)
+    df["NUMPONTO"] = (df["NUMPONTO"]).astype(int).astype(str).str.zfill(4)
+    df["FIXO"] = (df["FIXO"]).astype(int).astype(str).str.zfill(4)
+
+    pts_submap = df.to_dict("records")
+    sql_pts_submap = '''
+        INSERT INTO a_ptsmapa(AREA, NUMSUBMAP, NUMPONTO, DESCPONTO, CODSIMBOLO, TIPOCOORD, CAMPOA, CAMPOB, CAMPOC, CAMPOD, RAIOCURVA, INICURVA, FIMCURVA)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, '', '', '', '', '', '')
+    '''
+    pts_queries_list = []
+    for pt in pts_submap:
+        values_pt = (config.AREA, pt["NUMSUBMAP"], pt["NUMPONTO"], pt["DESCPONTO"], pt["CODSIMBOLO"], pt["TIPOCOORD"], pt["FIXO"])
+        pts_queries_list.append((sql_pts_submap, values_pt))
+    count_pts = execute(pts_queries_list)
+    if count_pts > 0:
+        list_inserted_pts = df[['NUMSUBMAP', 'DESCPONTO']].values.tolist()
+        for pt in list_inserted_pts:
+            log.info(f"Inserido PONTO: {pt[1]}, no SUBMAPA {pt[0]} .")
+        print("Arquivo inserido com sucesso!")
+        input("Pressione enter para continuar...")
+        return True
+    elif count_pts <= 0:
+        log.warn("Nao houveram alterações no banco. Cheque a tabela com os fixos das SUB.")
+        input("Pressione enter para continuar...")
+        return False
+    else:
+        return False
+
