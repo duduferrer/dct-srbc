@@ -242,7 +242,7 @@ def insert_exerc_traf():
     df = df.dropna(how="all")
     cols_int = ["EXERCICIO", "TRAF", "SSR", "NIV", "VEL(IAS)",
                 "PROA", "FIXO", "DIST(SE POLAR)", "RADIAL/GRAUS(SE POLAR)",
-                "PIL", "ATIV"]
+                "PIL", "ATIV","NIVEL POS","TAS POS"]
     df[cols_int] = df[cols_int].fillna(0)
     cols_str = ["DESIG", "INDICATIVO", "DEP", "ARR", "PROCED",
                 "TIPO DE COORD(F/D)", "RMK"]
@@ -253,6 +253,10 @@ def insert_exerc_traf():
     df["FIXO"] = (df["FIXO"]).astype(int).astype(str).str.zfill(4)
     df["PIL"] = (df["PIL"]).astype(int).astype(str).str.zfill(2)
     df["ATIV"] = (df["ATIV"]).astype(int).astype(str).str.zfill(3)
+    df["NIVEL POS"] = (df["NIVEL POS"]).astype(int).astype(str).str.zfill(3)
+    df["TAS POS"] = (df["TAS POS"]).astype(int).astype(str).str.zfill(3)
+    df["NIV"] = (df["NIV"]).astype(int).astype(str).str.zfill(3)
+    df["VEL(IAS)"] = (df["VEL(IAS)"]).astype(int).astype(str).str.zfill(3)
     replace_cols = df.columns.difference(["ATIV"])
     df[replace_cols] = df[replace_cols].replace(0, "")
     df = df[df["EXERCICIO"] != "0000"]
@@ -264,7 +268,7 @@ def insert_exerc_traf():
     trafs = df.to_dict("records")
     trafs_list = []
     for traf in trafs:
-        values = (config.AREA, traf['EXERCICIO'], traf["TRAF"], traf["DESIG"], traf["SSR"], traf["INDICATIVO"], traf["DEP"], traf["ARR"], traf["PROCED"], traf["NIV"], traf["VEL(IAS)"], traf["PROA"], traf["TIPO DE COORD(F/D)"], traf["FIXO"], traf["DIST(SE POLAR)"], traf["RADIAL/GRAUS(SE POLAR)"], traf["PIL"], traf["ATIV"], traf["RMK"], traf["NIV"], traf["VEL(IAS)"])
+        values = (config.AREA, traf['EXERCICIO'], traf["TRAF"], traf["DESIG"], traf["SSR"], traf["INDICATIVO"], traf["DEP"], traf["ARR"], traf["PROCED"], traf["NIV"], traf["VEL(IAS)"], traf["PROA"], traf["TIPO DE COORD(F/D)"], traf["FIXO"], traf["DIST(SE POLAR)"], traf["RADIAL/GRAUS(SE POLAR)"], traf["PIL"], traf["ATIV"], traf["RMK"], traf["NIVEL POS"], traf["TAS POS"])
         trafs_list.append((sql, values))
     count = execute(trafs_list)
     if count > 0:
