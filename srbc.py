@@ -258,10 +258,10 @@ def insert_exerc_traf():
     df["NIV"] = (df["NIV"]).astype(int).astype(str).str.zfill(3)
     df["VEL(IAS)"] = (df["VEL(IAS)"]).astype(int).astype(str).str.zfill(3)
     replace_cols = df.columns.difference(["ATIV"])
-    df[replace_cols] = df[replace_cols].replace(0, "")
+    df[replace_cols] = df[replace_cols].replace((0,"0", "00", "000","0000"), "")
     df = df[df["EXERCICIO"] != "0000"]
     sql = '''
-        INSERT INTO a_trafe(area , numexerc , numtrafego , designador , ssr , indicativo , origem , destino , procedimen , nivel , velocidade , proa , tipocoord , campoa , campob , campoc , pilotagem , temptrafeg, rmk , niveltrj , veltrj)
+        INSERT INTO a_trafe(area , numexerc , numtrafego , designador , ssr , indicativo , origem , destino , procedimen , nivtrj , veltrj , proa , tipocoord , campoa , campob , campoc , pilotagem , temptrafeg, rmk , nivel , velocidade)
         VALUES (%s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s, %s , %s , %s)
     '''
 
