@@ -16,3 +16,5 @@ PTS_SUB="pts_sub-SCRIPT"
 FIX="FIX"
 MAP="submapa"
 PTS_MAP="pts_submapa"
+FAMILY='familias'
+ACFT_TYPE='equipamentos'

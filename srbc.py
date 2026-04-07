@@ -437,3 +437,61 @@ def insert_maps():
     else:
         return False
 
+def insert_acft_fmly():
+    df = get_data_from_table(config.FAMILY)
+    df = df.dropna(how="all")
+    df["Teto de Servico"] = (df["Teto de Servico"]).astype(int).astype(str).str.zfill(3)
+    df["Faixa"] = (df["Faixa"]).astype(int).astype(str).str.zfill(3)
+
+    sql = '''
+            INSERT IGNORE INTO a_perfor(numfami , tetosv , faixa , veldec , velsbdec , velapx , velcruz , velmxcrz , 
+            rzsubdec , rzmxsbdec , rzsbcrz , rzmxsbcrz , rzdescapx , rzmxdesapx , rzdescrz , rzmxdescrz , razvarvel , 
+            rzmxvarvel)
+            VALUES (%s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s , %s)
+        '''
+    families = df.to_dict("records")
+    families_list = []
+    for family in families:
+        values = (family["Grupo"], family["Teto de Servico"], family["Faixa"],family["IAS de Decolagem"],family["IAS de Subida"],
+                  family["IAS de Aproximacao"],family["TAS de Cruzeiro"],family["TAS Maxima de Cruzeiro"],
+                  family["Razao de Subida na Decolagem"],family["Razao Max de Subida na Decolagem"],
+                  family["Razao de Subida em Cruzeiro"],family["Razao Max de Subida em Cruzeiro"],
+                  family["Razao de Descida na Aproximacao"],family["Razao Max de Descida na Aproximacao"],
+                  family["Razao de Descida em Cruzeiro"],family["Razao Max de Descida em Cruzeiro"],
+                  family["Razao de Variacao de Velocidade"], family["Razao Max Variacao de Velocidade"])
+        families_list.append((sql, values))
+    count = execute(families_list)
+    if count > 0:
+        list_inserted_fam = df['Grupo'].values.tolist()
+        for fam in list_inserted_fam:
+            log.info(f"Familia {fam} adicionado no banco de dados.")
+        print("Arquivo inserido com sucesso!")
+        input("Pressione enter para continuar...")
+    elif count <= 0:
+        log.warn("Nao houveram alterações no banco. Cheque a tabela com as Familias de aeronaves.")
+        input("Pressione enter para continuar...")
+def insert_acft_type():
+    df = get_data_from_table(config.ACFT_TYPE)
+    df = df.dropna(how="all")
+    df["FAMILIA"] = (df["FAMILIA"]).astype(int).astype(str).str.zfill(2)
+
+    sql = '''
+            INSERT IGNORE INTO a_aeron(designador, nome, numfami, esteira)
+            VALUES (%s , %s , %s , %s)
+        '''
+    types = df.to_dict("records")
+    types_list = []
+    for type in types:
+        values = (type["DESIGNADOR"], type["COMPLEMENTO"], type["FAMILIA"],type["ESTEIRA"])
+        types_list.append((sql, values))
+    count = execute(types_list)
+    if count > 0:
+        list_inserted_type = df['DESIGNADOR'].values.tolist()
+        for tp in list_inserted_type:
+            log.info(f"Familia {tp} adicionado no banco de dados.")
+        print("Arquivo inserido com sucesso!")
+        input("Pressione enter para continuar...")
+    elif count <= 0:
+        log.warn("Nao houveram alterações no banco. Cheque a tabela com os Tipos de Aeronave.")
+        input("Pressione enter para continuar...")
+

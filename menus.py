@@ -3,7 +3,7 @@ import sys
 
 import questionary
 from srbc import get_data_from_table, insert_fix_into_db, insert_trj, insert_exerc, insert_exerc_traf, insert_subs, \
-    insert_ad, insert_maps
+    insert_ad, insert_maps, insert_acft_fmly, insert_acft_type
 import config
 from about import about
 from database import conn_test
@@ -56,6 +56,8 @@ def selection_menu():
                     questionary.Choice("Adicionar Exercicios", "ex"),
                     questionary.Choice("Adicionar Aeronaves de Exercicios", "acft"),
                     questionary.Choice("Adicionar Aerodromo", "ad"),
+                    questionary.Choice("Adicionar Familias de ACFT", "fmly"),
+                    questionary.Choice("Adicionar Tipos de ACFT", "acft_type"),
                     questionary.Choice("Sobre", "about"),
                     questionary.Separator(),
                     questionary.Choice("Sair", "exit")]
@@ -82,6 +84,12 @@ def selection_menu():
             selection_menu()
         case "maps":
             insert_maps()
+            selection_menu()
+        case "fmly":
+            insert_acft_fmly()
+            selection_menu()
+        case "acft_type":
+            insert_acft_type()
             selection_menu()
         case "about":
             about()
